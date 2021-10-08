@@ -11,7 +11,7 @@
         <script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
-        <script>var SITEURL ='http://localhost/jindal'; //var SITEURL ='https://jindalmortgages.ca/app';</script>
+        <script>/*var SITEURL ='http://localhost/jindal'; */ var SITEURL ='https://jindalmortgages.ca/app';</script>
         <link href="{{ asset('css/main.css') }}" rel="stylesheet">
         <script src="{{ asset('js/main.js') }}"></script>
 
@@ -57,13 +57,13 @@
                         <div class="form-group">
                             <label for="applicant_first_name" class="col-sm-3 control-label">First Name*</label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{$first_name}}" id="applicant_first_name" name="applicant_first_name" placeholder="First Name*" class="form-control" required autofocus>
+                                <input type="text" readonly value="{{$first_name}}" id="applicant_first_name" name="applicant_first_name" placeholder="First Name*" class="form-control" required autofocus>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="applicant_last_name" class="col-sm-3 control-label">Last Name*</label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{$last_name}}" id="applicant_last_name" name="applicant_last_name" placeholder="Last Name*" class="form-control" required>
+                                <input type="text" readonly value="{{$last_name}}" id="applicant_last_name" name="applicant_last_name" placeholder="Last Name*" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
@@ -107,7 +107,7 @@
                             <label for="applicant_street_type" class="col-sm-3 control-label">Street Type </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_street_type" name="applicant_street_type">
-                                    <option value="0" selected="">Street Type</option>
+                                    <option value="" selected="">Street Type</option>
                                     <option value="Ave">Ave</option>
                                     <option value="Blvd">Blvd</option>
                                     <option value="Crt">Crt</option>
@@ -285,7 +285,7 @@
                             <label for="applicant_previous_street_type" class="col-sm-3 control-label">Street Type </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_previous_street_type" name="applicant_previous_street_type">
-                                    <option value="0" selected="">Street Type</option>
+                                    <option value="" selected="">Street Type</option>
                                     <option value="Ave">Ave</option>
                                     <option value="Blvd">Blvd</option>
                                     <option value="Crt">Crt</option>
@@ -478,7 +478,7 @@
                             <label for="co_applicant_street_type" class="col-sm-3 control-label">Street Type </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_street_type" name="co_applicant_street_type">
-                                    <option value="0" selected="">Street Type</option>
+                                    <option value="" selected="">Street Type</option>
                                     <option value="Ave">Ave</option>
                                     <option value="Blvd">Blvd</option>
                                     <option value="Crt">Crt</option>
@@ -632,7 +632,7 @@
                             <label for="co_applicant_previous_street_type" class="col-sm-3 control-label">Street Type </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_previous_street_type" name="co_applicant_previous_street_type">
-                                    <option value="0" selected="">Street Type</option>
+                                    <option value="" selected="">Street Type</option>
                                     <option value="Ave">Ave</option>
                                     <option value="Blvd">Blvd</option>
                                     <option value="Crt">Crt</option>
@@ -1468,20 +1468,20 @@
                             <label for="property_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="property_province" name="Property[property_province][]" required>					
-                                    <option value="">Province</option>
-                                    <option value="1">Alberta</option>
-                                    <option value="2">British Columbia</option>
-                                    <option value="3">Manitoba</option>
-                                    <option value="4">New Brunswick</option>
-                                    <option value="5">Newfoundland &amp; Labrador</option>
-                                    <option value="6">Northwest Territories</option>
-                                    <option value="7">Nova Scotia</option>
-                                    <option value="8">Nunavut</option>
-                                    <option value="9">Ontario</option>
-                                    <option value="10">Prince Edward Island</option>
-                                    <option value="11">Quebec</option>
-                                    <option value="12">Saskatchewan</option>
-                                    <option value="13">Yukon</option>
+                                    <option selected="" value="">Province*</option>
+                                    <option value="Alberta">Alberta</option>
+                                    <option value="British Columbia">British Columbia</option>
+                                    <option value="Manitoba">Manitoba</option>
+                                    <option value="New Brunswick">New Brunswick</option>
+                                    <option value="Newfoundland &amp; Labrador">Newfoundland &amp; Labrador</option>
+                                    <option value="Northwest Territories">Northwest Territories</option>
+                                    <option value="Nova Scotia">Nova Scotia</option>
+                                    <option value="Nunavut">Nunavut</option>
+                                    <option value="Ontario">Ontario</option>
+                                    <option value="Prince Edward Island">Prince Edward Island</option>
+                                    <option value="Quebec">Quebec</option>
+                                    <option value="Saskatchewan">Saskatchewan</option>
+                                    <option value="Yukon">Yukon</option>
                                 </select>
                             </div>
                         </div>
@@ -1572,7 +1572,7 @@
                         </div>
                         <div class="form-group">
                             <label for="mortgage_amortization_year" class="col-sm-3 control-label">Amortization*</label>
-                            <div class="col-md-9">
+                            <div class="col-sm-9">
                                 <div class="row">
                                     <div class="col-sm-6 col-xs-6">
                                         <select class="form-control" id="mortgage_amortization_year" name="Mortgage[mortgage_amortization_year][]" required>					
@@ -1612,7 +1612,7 @@
                             <label for="mortgage_term" class="col-sm-3 control-label">Term </label>
                             <div class="col-sm-9">
                                 <select class="form-control" name="mortgage_term" id="Mortgage[mortgage_term][]">
-                                    <option value="0" selected="">Term</option>
+                                    <option value="" selected="">Term</option>
                                      <option value="1">1</option>
                                      <option value="2">2</option>
                                      <option value="3">3</option>
@@ -1652,7 +1652,7 @@
                         <div class="form-group">
                             <label for="mortgage_first_time_buyer" class="col-sm-3 control-label">First-Time Buyer*</label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="mortgage_first_time_buyer" name="Mortgage[mortgage_first_time_buyer][]">
+                                <select class="form-control" id="mortgage_first_time_buyer" name="Mortgage[mortgage_first_time_buyer][]" required>
                                     <option value="" selected="">First-Time Buyer*</option>
                                     <option value="Yes">Yes</option>
                                     <option value="No">No</option>
