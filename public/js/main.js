@@ -44,24 +44,44 @@ function same_as() {
 
 $(function() {
 
-    // var data = $('#login-form').serialize();
-    // $.ajax({
-    //     url: "http://localhost/jindal/admin/login",
-    //     method: 'post',
-    //     data: data,
-    //     success: function(data){
-    //         console.log(data); 
-    //         //return false;
-    //         window.location.href = 'http://localhost/jindal/admin/';
-    //     }
-    // });
-
-    var navListItems = $('div.setup-panel div a'),
-            allWells = $('.setup-content'),
-            allNextBtn = $('.nextBtn');
-            allPrevBtn = $('.prevBtn');
+    var navListItems   = $('div.setup-panel div a'),
+            allWells   = $('.setup-content'),
+            allNextBtn = $('.nextBtn'),
+            allPrevBtn = $('.prevBtn'),
+             readMore  = $('#read-more'),
+    addMoreMortgage    = $('.add_more_mortgage'),            
+    addMoreProperty    = $('.add_more_property');            
 
     allWells.hide();
+    
+    addMoreProperty.click(function (e) {
+        //console.log(e);
+        $('.property-information:first-child').clone(true).insertBefore(".property-information-clone");
+        return false;
+    });;
+
+    addMoreMortgage.click(function (e) {
+        $('#step-11 .mortgage-information:first-child').clone(true).insertBefore(".mortgage-information-clone");
+        return false;
+    });;
+
+    $(".remove").click(function() {
+        $(this).parent().remove();
+    });
+
+    readMore.click(function (e) {
+        e.preventDefault();
+        var d = $(this);
+        var buttonText = d.text();
+        if(buttonText=='read less') {
+            d.text('read more');
+            d.prev().removeClass('read-less').addClass('read-more');
+        }
+        else {
+            d.text('read less');
+            d.prev().removeClass('read-more').addClass('read-less');
+        }
+    });
 
     var application_type = $('#application_type').val();
 
@@ -91,21 +111,43 @@ $(function() {
             }
         } else if(application_type=='Full-Application') {
 
-            var applicant_time_at_residence_year = $('#applicant_time_at_residence_year').val();
-            var co_applicant_time_at_residence_year = $('#co_applicant_time_at_residence_year').val();
-            console.log(curStepBtn);
+            var applicant_time_at_residence_year        = $('#applicant_time_at_residence_year').val();
+            var co_applicant_time_at_residence_year     = $('#co_applicant_time_at_residence_year').val();
+            var applicant_employment_time_at_job_year   = $('#applicant_employment_time_at_job_year').val();
+            var co_applicant_employment_time_at_job_year= $('#co_applicant_employment_time_at_job_year').val();
+            //console.log(curStepBtn);
+            //console.log('applicant_time_at_residence_year='+applicant_time_at_residence_year);
+            //console.log('co_applicant_time_at_residence_year='+co_applicant_time_at_residence_year);
+            //console.log('applicant_employment_time_at_job_year='+applicant_employment_time_at_job_year);
+            //console.log('co_applicant_employment_time_at_job_year='+co_applicant_employment_time_at_job_year);
+            //console.log($("#is_co_applicant1").prop("checked"));
             
             if( curStepBtn=='step-3' && parseInt(applicant_time_at_residence_year) > 3 ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().prev().prev().children("a"); 
+                nextStepWizard = $('div.setup-panel div a[href="#step-1"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-6' && $("#is_co_applicant1").prop("checked") && parseInt(applicant_time_at_residence_year) < 4 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-3"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-6' && $("#is_co_applicant1").prop("checked") && parseInt(applicant_time_at_residence_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-4"]').parent().children("a"); 
             }
             else if ( curStepBtn=='step-6' && $("#is_co_applicant1").prop("checked") ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().prev().prev().prev().children("a");
-            }
-            else if( curStepBtn=='step-6' && parseInt(co_applicant_time_at_residence_year) > 3 ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().prev().prev().children("a"); 
+                nextStepWizard = $('div.setup-panel div a[href="#step-4"]').parent().children("a");
             }
             else if( curStepBtn=='step-8' && $("#is_co_applicant1").prop("checked") ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().prev().prev().children("a"); 
+                nextStepWizard = $('div.setup-panel div a[href="#step-6"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-8' && parseInt(applicant_employment_time_at_job_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-6"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-10' && $("#is_co_applicant1").prop("checked") && parseInt(applicant_time_at_residence_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-6"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-10' && $("#is_co_applicant1").prop("checked") && parseInt(applicant_time_at_residence_year) < 4 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-7"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-10' && parseInt(co_applicant_employment_time_at_job_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-8"]').parent().children("a"); 
             }
         }
         
@@ -116,7 +158,7 @@ $(function() {
         var curStep = $(this).closest(".setup-content"),
             curStepBtn = curStep.attr("id"),
             nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().next().children("a"),
-            curInputs = curStep.find("input[type='text'],input[type='number'],input[type='date'],input[type='email'],input[type='radio'],select"),
+            curInputs = curStep.find("input[type='text'],input[type='number'],input[type='date'],input[type='email'],input[type='radio'],input[type='checkbox'],select"),
             isValid = true;
 
         $(".form-group").removeClass("has-error");
@@ -138,21 +180,38 @@ $(function() {
         }
         else if(application_type=='Full-Application') {
 
-            var applicant_time_at_residence_year = $('#applicant_time_at_residence_year').val();
-            var co_applicant_time_at_residence_year = $('#co_applicant_time_at_residence_year').val();
-            console.log(curStepBtn);
+            var applicant_time_at_residence_year        = $('#applicant_time_at_residence_year').val();
+            var co_applicant_time_at_residence_year     = $('#co_applicant_time_at_residence_year').val();
+            var applicant_employment_time_at_job_year   = $('#applicant_employment_time_at_job_year').val();
+            var co_applicant_employment_time_at_job_year= $('#co_applicant_employment_time_at_job_year').val();
+            //console.log('------------------------');
+            //console.log(curStepBtn);
+            //console.log('applicant_time_at_residence_year='+applicant_time_at_residence_year);
+            //console.log('co_applicant_time_at_residence_year='+co_applicant_time_at_residence_year);
+            //console.log('applicant_employment_time_at_job_year='+applicant_employment_time_at_job_year);
+            //console.log('co_applicant_employment_time_at_job_year='+co_applicant_employment_time_at_job_year);
+            //console.log($("#is_co_applicant1").prop("checked"));
             
             if( curStepBtn=='step-1' && parseInt(applicant_time_at_residence_year) > 3 ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().next().next().children("a"); 
+                nextStepWizard = $('div.setup-panel div a[href="#step-3"]').parent().children("a"); 
             }
-            else if ( curStepBtn=='step-3' && $("#is_co_applicant1").prop("checked") ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().next().next().next().children("a");
+            else if( curStepBtn=='step-3' && $("#is_co_applicant1").prop("checked") ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-6"]').parent().children("a");
             }
             else if( curStepBtn=='step-4' && parseInt(co_applicant_time_at_residence_year) > 3 ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().next().next().children("a"); 
+                nextStepWizard = $('div.setup-panel div a[href="#step-6"]').parent().children("a"); 
             }
-            else if( curStepBtn=='step-6' && $("#is_co_applicant1").prop("checked") ) {
-                nextStepWizard = $('div.setup-panel div a[href="#' + curStepBtn + '"]').parent().next().next().children("a"); 
+            else if( curStepBtn=='step-6' && $("#is_co_applicant1").prop("checked") && parseInt(applicant_employment_time_at_job_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-10"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-6' && parseInt(applicant_employment_time_at_job_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-8"]').parent().children("a"); 
+            }
+            else if( curStepBtn=='step-7' && $("#is_co_applicant1").prop("checked") ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-10"]').parent().children("a");
+            }
+            else if( curStepBtn=='step-8' && parseInt(co_applicant_employment_time_at_job_year) > 3 ) {
+                nextStepWizard = $('div.setup-panel div a[href="#step-10"]').parent().children("a"); 
             }
         }
 
@@ -167,12 +226,12 @@ $(function() {
 
     $('div.setup-panel div a.btn-primary').trigger('click');
 
-    $('.apply_now').click(function(){
+    $('.apply_now').click(function() {
         $('.loading').show();
         var the = $(this);
         var data = $('#application_form').serialize();
         $.ajax({
-            url: "http://localhost/jindal/eazy-application-form",
+            url: SITEURL+"/eazy-application-form",
             method: 'post',
             data: data,
             success: function(data){
@@ -183,16 +242,16 @@ $(function() {
                     $('#login_email').val(data.email);
                     $('#login_password').val(data.password);
                     //$('#login-form').submit();
-                    //window.location.href = 'http://localhost/jindal/admin/';
+                    //window.location.href = SITEURL+'/admin/';
                     var data = $('#login-form').serialize();
                     $.ajax({
-                        url: "http://localhost/jindal/admin/login",
+                        url: SITEURL+"/admin/login",
                         method: 'post',
                         data: data,
                         success: function(data){
                             console.log(data); 
                             //return false;
-                            window.location.href = 'http://localhost/jindal/admin/';
+                            window.location.href = SITEURL+'/admin/';
                         }
                     });
                 }
@@ -217,7 +276,7 @@ $(function() {
         var the = $(this);
         var data = $('#application_form').serialize();
         $.ajax({
-            url: "http://localhost/jindal/full-application-form",
+            url: SITEURL+"/full-application-form",
             method: 'post',
             data: data,
             success: function(data){
@@ -228,16 +287,16 @@ $(function() {
                     $('#login_email').val(data.email);
                     $('#login_password').val(data.password);
                     //$('#login-form').submit();
-                    //window.location.href = 'http://localhost/jindal/admin/';
+                    //window.location.href = SITEURL+'/admin/';
                     var data = $('#login-form').serialize();
                     $.ajax({
-                        url: "http://localhost/jindal/admin/login",
+                        url: SITEURL+"/admin/login",
                         method: 'post',
                         data: data,
                         success: function(data){
                             console.log(data); 
                             //return false;
-                            window.location.href = 'http://localhost/jindal/admin/';
+                            window.location.href = SITEURL+'/admin/';
                         }
                     });
                 }

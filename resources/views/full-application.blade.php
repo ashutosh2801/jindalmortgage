@@ -11,8 +11,10 @@
         <script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
         <script src="//netdna.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
 
+        <script>var SITEURL ='http://localhost/jindal'; //var SITEURL ='https://jindalmortgages.ca/app';</script>
         <link href="{{ asset('css/main.css') }}" rel="stylesheet">
         <script src="{{ asset('js/main.js') }}"></script>
+
         
     </head>
 <body>
@@ -20,11 +22,11 @@
 <div class="container">
     <form class="form-horizontal" role="form" method="POST" id="application_form" onsubmit="return false">
         {{ csrf_field() }} 
-        <input type="hidden" name="token" value="{{$user->token}}" />
+        <input type="hidden" name="token" value="{{$user->user_token}}" />
         <input type="hidden" name="application_type" value="Full-Application" id="application_type" />
         <img src="https://jindalmortgages.ca/wp-content/themes/jm-mortgage/assets/images/logo.png" height="70" />
         <h2><u>{{$user->application->application_name}}</u> Application Form</h2>
-
+        <p>Please fill in all fields marked with an asterisk (*)</p>
         <div class="container-max">
             <div class="stepwizard">
                 <div class="stepwizard-row setup-panel" style="display: none">
@@ -44,32 +46,40 @@
                     <div class="">
                         <h3>Personal Information</h3>
                         
+                        @php
+                        $fullname = [];
+                        $fullname = explode(" ",$user->name);
+                        $first_name = $fullname[0];
+                        $last_name = $fullname[1];
+                        if(count($fullname)==3) {$first_name = $fullname[0].' '.$fullname[1];$last_name = $fullname[2];}
+                        @endphp
+                        
                         <div class="form-group">
-                            <label for="applicant_first_name" class="col-sm-3 control-label">First Name</label>
+                            <label for="applicant_first_name" class="col-sm-3 control-label">First Name*</label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{$first_name}}" id="applicant_first_name" name="applicant_first_name" placeholder="First Name" class="form-control" required autofocus>
+                                <input type="text" value="{{$first_name}}" id="applicant_first_name" name="applicant_first_name" placeholder="First Name*" class="form-control" required autofocus>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_last_name" class="col-sm-3 control-label">Last Name</label>
+                            <label for="applicant_last_name" class="col-sm-3 control-label">Last Name*</label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{$last_name}}" id="applicant_last_name" name="applicant_last_name" placeholder="Last Name" class="form-control" required>
+                                <input type="text" value="{{$last_name}}" id="applicant_last_name" name="applicant_last_name" placeholder="Last Name*" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_email" class="col-sm-3 control-label">Email </label>
+                            <label for="applicant_email" class="col-sm-3 control-label">Email* </label>
                             <div class="col-sm-9">
-                                <input type="email" value="{{$user->email}}" id="applicant_email" name="applicant_email" placeholder="Email" class="form-control" required>
+                                <input type="email" readonly value="{{$user->email}}" id="applicant_email" name="applicant_email" placeholder="Email*" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_phone" class="col-sm-3 control-label">Phone number </label>
+                            <label for="applicant_phone" class="col-sm-3 control-label">Phone number* </label>
                             <div class="col-sm-9">
-                                <input type="text" value="{{$user->mobile}}" id="applicant_phone" name="applicant_phone" placeholder="Phone number" class="form-control" maxlength="15" required>
+                                <input type="text" readonly value="{{$user->mobile}}" id="applicant_phone" name="applicant_phone" placeholder="Phone number*" class="form-control" maxlength="15" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_birth_date" class="col-sm-3 control-label">Date of Birth</label>
+                            <label for="applicant_birth_date" class="col-sm-3 control-label">Date of Birth*</label>
                             <div class="col-sm-9">
                                 <input type="date" max="{{date('Y')-18}}-{{date('m-d')}}" id="applicant_birth_date" name="applicant_birth_date" class="form-control" required>
                             </div>
@@ -82,15 +92,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="applicant_street_number" class="col-sm-3 control-label">Street Number </label>
+                            <label for="applicant_street_number" class="col-sm-3 control-label">Street Number* </label>
                             <div class="col-sm-9">
-                                <input type="number" id="applicant_street_number" name="applicant_street_number" placeholder="Street Number" class="form-control" required>
+                                <input type="number" id="applicant_street_number" name="applicant_street_number" placeholder="Street Number*" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_street_name" class="col-sm-3 control-label">Street Name </label>
+                            <label for="applicant_street_name" class="col-sm-3 control-label">Street Name* </label>
                             <div class="col-sm-9">
-                                <input type="text" id="applicant_street_name" name="applicant_street_name" placeholder="Street Name" class="form-control" required>
+                                <input type="text" id="applicant_street_name" name="applicant_street_name" placeholder="Street Name*" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
@@ -136,16 +146,16 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_city" class="col-sm-3 control-label">City / Town</label>
+                            <label for="applicant_city" class="col-sm-3 control-label">City / Town*</label>
                             <div class="col-sm-9">
-                                <input type="text" id="applicant_city" name="applicant_city" placeholder="City" class="form-control" required>
+                                <input type="text" id="applicant_city" name="applicant_city" placeholder="City*" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_province" class="col-sm-3 control-label">Province </label>
+                            <label for="applicant_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_province" name="applicant_province" required>					
-                                    <option selected="" value="">Province</option>
+                                    <option selected="" value="">Province*</option>
                                     <option value="Alberta">Alberta</option>
                                     <option value="British Columbia">British Columbia</option>
                                     <option value="Manitoba">Manitoba</option>
@@ -163,16 +173,16 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="applicant_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_postal_code" name="applicant_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_residential_status" class="col-sm-3 control-label">Residential Status </label>
+                            <label for="applicant_residential_status" class="col-sm-3 control-label">Residential Status* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_residential_status" name="applicant_residential_status" required>					
-                                    <option selected="" value="">Residential Status</option>
+                                    <option selected="" value="">Residential Status*</option>
                                     <option value="Own">Own</option>
                                     <option value="Rent">Rent</option>
                                     <option value="Other">Other</option>
@@ -180,22 +190,26 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence </label>
-                            <div class="col-sm-4 col-xs-6">
+                            <label for="applicant_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="applicant_time_at_residence_year" name="applicant_time_at_residence_year" required>					
-                                    <option selected="" value="">Year(s)</option>
+                                    <option selected="" value="">Year(s)*</option>
                                     @for ($i = 1; $i < 15; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-sm-4 col-xs-6">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="applicant_time_at_residence_month" name="applicant_time_at_residence_month">					
                                     <option selected="" value="">Month(s)</option>
                                     @for ($i = 1; $i < 12; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
+                            </div>
+                            </div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -256,13 +270,13 @@
                         <h3>Applicant - Previous Address</h3>
 
                         <div class="form-group">
-                            <label for="applicant_previous_street_number" class="col-sm-3 control-label">Street Number </label>
+                            <label for="applicant_previous_street_number" class="col-sm-3 control-label">Street Number* </label>
                             <div class="col-sm-9">
                                 <input type="number" id="applicant_previous_street_number" name="applicant_previous_street_number" placeholder="Street Number" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_previous_street_name" class="col-sm-3 control-label">Street Name </label>
+                            <label for="applicant_previous_street_name" class="col-sm-3 control-label">Street Name* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_previous_street_name" name="applicant_previous_street_name" placeholder="Street Name" class="form-control" required>
                             </div>
@@ -310,13 +324,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_previous_city" class="col-sm-3 control-label">City / Town</label>
+                            <label for="applicant_previous_city" class="col-sm-3 control-label">City / Town*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_previous_city" name="applicant_previous_city" placeholder="Unit Number" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_previous_province" class="col-sm-3 control-label">Province </label>
+                            <label for="applicant_previous_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_previous_province" name="applicant_previous_province" required>					
                                     <option selected="" value="">Province</option>
@@ -337,13 +351,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_previous_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="applicant_previous_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_previous_postal_code" name="applicant_previous_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_previous_residential_status" class="col-sm-3 control-label">Residential Status </label>
+                            <label for="applicant_previous_residential_status" class="col-sm-3 control-label">Residential Status* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_previous_residential_status" name="applicant_previous_residential_status" required>					
                                     <option selected="" value="">Residential Status</option>
@@ -354,22 +368,26 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_previous_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence </label>
-                            <div class="col-sm-4 col-xs-6">
+                            <label for="applicant_previous_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="applicant_previous_time_at_residence_year" name="applicant_previous_time_at_residence_year" required>					
-                                    <option selected="" value="">Year(s)</option>
+                                    <option selected="" value="">Year(s)*</option>
                                     @for ($i = 1; $i < 15; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-sm-4 col-xs-6">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="applicant_previous_time_at_residence_month" name="applicant_previous_time_at_residence_month">					
                                     <option selected="" value="">Month(s)</option>
                                     @for ($i = 1; $i < 12; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
+                            </div>
+                            </div>
                             </div>
                         </div>                     
                         
@@ -382,14 +400,14 @@
             <div class="row setup-content" id="step-3">
                 <div class="col-xs-12">
                     <div class="">
-                        <h3>Is there a co-applicant?</h3>
+                        <h3>Is there a co-applicant?*</h3>
                         <div class="form-group">
                             <div class="funkyradio">
-                                <div class="funkyradio-success col-md-6 col-xs-6">
+                                <div class="funkyradio-success col-sm-6 col-xs-6">
                                     <input type="radio" name="is_co_applicant" value="Yes" id="is_co_applicant0" required />
                                     <label for="is_co_applicant0">Yes</label>
                                 </div>
-                                <div class="funkyradio-danger col-md-6 col-xs-6">
+                                <div class="funkyradio-danger col-sm-6 col-xs-6">
                                     <input type="radio" name="is_co_applicant" value="No" id="is_co_applicant1" required />
                                     <label for="is_co_applicant1">No</label>
                                 </div>
@@ -408,31 +426,31 @@
                         <h3>Co-Applicant Information</h3>
                         
                         <div class="form-group">
-                            <label for="co_applicant_first_name" class="col-sm-3 control-label">First Name</label>
+                            <label for="co_applicant_first_name" class="col-sm-3 control-label">First Name*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_first_name" name="co_applicant_first_name" placeholder="First Name" class="form-control" required autofocus>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_last_name" class="col-sm-3 control-label">Last Name</label>
+                            <label for="co_applicant_last_name" class="col-sm-3 control-label">Last Name*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_last_name" name="co_applicant_last_name" placeholder="Last Name" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_email" class="col-sm-3 control-label">Email </label>
+                            <label for="co_applicant_email" class="col-sm-3 control-label">Email*</label>
                             <div class="col-sm-9">
                                 <input type="email" id="co_applicant_email" name="co_applicant_email" placeholder="Email" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_phone" class="col-sm-3 control-label">Phone number </label>
+                            <label for="co_applicant_phone" class="col-sm-3 control-label">Phone number* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_phone" name="co_applicant_phone" placeholder="Phone number" class="form-control" maxlength="15" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_birth_date" class="col-sm-3 control-label">Date of Birth</label>
+                            <label for="co_applicant_birth_date" class="col-sm-3 control-label">Date of Birth*</label>
                             <div class="col-sm-9">
                                 <input type="date" max="{{date('Y')-18}}-{{date('m-d')}}" id="co_applicant_birth_date" name="co_applicant_birth_date" class="form-control" required>
                             </div>
@@ -445,13 +463,13 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="co_applicant_street_number" class="col-sm-3 control-label">Street Number </label>
+                            <label for="co_applicant_street_number" class="col-sm-3 control-label">Street Number* </label>
                             <div class="col-sm-9">
                                 <input type="number" id="co_applicant_street_number" name="co_applicant_street_number" placeholder="Street Number" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_street_name" class="col-sm-3 control-label">Street Name </label>
+                            <label for="co_applicant_street_name" class="col-sm-3 control-label">Street Name* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_street_name" name="co_applicant_street_name" placeholder="Street Name" class="form-control" required>
                             </div>
@@ -499,13 +517,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_city" class="col-sm-3 control-label">City / Town</label>
+                            <label for="co_applicant_city" class="col-sm-3 control-label">City / Town*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_city" name="co_applicant_city" placeholder="City / Town" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_province" class="col-sm-3 control-label">Province </label>
+                            <label for="co_applicant_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_province" name="co_applicant_province" required>					
                                     <option selected="" value="">Province</option>
@@ -526,7 +544,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="co_applicant_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_postal_code" name="co_applicant_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
@@ -543,8 +561,10 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence </label>
-                            <div class="col-sm-4 col-xs-6">
+                            <label for="co_applicant_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="co_applicant_time_at_residence_year" name="co_applicant_time_at_residence_year" required>					
                                     <option selected="" value="">Year(s)</option>
                                     @for ($i = 1; $i < 15; $i++)
@@ -552,13 +572,15 @@
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-sm-4 col-xs-6">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="co_applicant_time_at_residence_month" name="co_applicant_time_at_residence_month">					
                                     <option selected="" value="">Month(s)</option>
                                     @for ($i = 1; $i < 12; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
+                            </div>
+                            </div>
                             </div>
                         </div>
                         <div class="form-group">
@@ -595,13 +617,13 @@
                     <div class="">
                         <h3>Co-applicant - Previous Address</h3>
                         <div class="form-group">
-                            <label for="co_applicant_previous_street_number" class="col-sm-3 control-label">Street Number </label>
+                            <label for="co_applicant_previous_street_number" class="col-sm-3 control-label">Street Number* </label>
                             <div class="col-sm-9">
                                 <input type="number" id="co_applicant_previous_street_number" name="co_applicant_previous_street_number" placeholder="Street Number" class="form-control" required autofocus>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_previous_street_name" class="col-sm-3 control-label">Street Name </label>
+                            <label for="co_applicant_previous_street_name" class="col-sm-3 control-label">Street Name* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_previous_street_name" name="co_applicant_previous_street_name" placeholder="Street Name" class="form-control" required>
                             </div>
@@ -649,13 +671,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_previous_city" class="col-sm-3 control-label">City / Town</label>
+                            <label for="co_applicant_previous_city" class="col-sm-3 control-label">City / Town*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_previous_city" name="co_applicant_previous_city" placeholder="City / Town" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_previous_province" class="col-sm-3 control-label">Province </label>
+                            <label for="co_applicant_previous_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_previous_province" name="co_applicant_previous_province" required>					
                                     <option selected="" value="">Province</option>
@@ -676,13 +698,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_previous_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="co_applicant_previous_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_previous_postal_code" name="co_applicant_previous_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_previous_residential_status" class="col-sm-3 control-label">Residential Status </label>
+                            <label for="co_applicant_previous_residential_status" class="col-sm-3 control-label">Residential Status* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_previous_residential_status" name="co_applicant_previous_residential_status" required>					
                                     <option selected="" value="">Residential Status</option>
@@ -693,22 +715,26 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_previous_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence </label>
-                            <div class="col-sm-4 col-xs-6">
+                            <label for="co_applicant_previous_time_at_residence_year" class="col-sm-3 col-xs-12 control-label">Time At Residence* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="co_applicant_previous_time_at_residence_year" name="co_applicant_previous_time_at_residence_year" required>					
-                                    <option selected="" value="">Year(s)</option>
+                                    <option selected="" value="">Year(s)*</option>
                                     @for ($i = 1; $i < 15; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-sm-4 col-xs-6">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="co_applicant_previous_time_at_residence_month" name="co_applicant_previous_time_at_residence_month">					
                                     <option selected="" value="">Month(s)</option>
                                     @for ($i = 1; $i < 12; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
+                            </div>
+                            </div>
                             </div>
                         </div>
                         
@@ -724,26 +750,30 @@
                         <h3>Employment Information</h3>
                         <h4>Applicant</h4>
                         <div class="form-group">
-                            <label for="applicant_self_employed" class="col-sm-3 control-label">Self-Employed</label>
-                            <div class="funkyradio col-md-9">
-                                <div class="funkyradio-success col-md-6 col-xs-6">
+                            <label for="applicant_self_employed" class="col-sm-3 control-label">Self-Employed*</label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="funkyradio">
+                                <div class="funkyradio-success col-sm-6 col-xs-6">
                                     <input type="radio" name="applicant_self_employed" value="Yes" id="applicant_self_employed0" required />
                                     <label for="applicant_self_employed0">Yes</label>
                                 </div>
-                                <div class="funkyradio-success col-md-6 col-xs-6">
+                                <div class="funkyradio-danger col-sm-6 col-xs-6">
                                     <input type="radio" name="applicant_self_employed" value="No" id="applicant_self_employed1" />
                                     <label for="applicant_self_employed1">No</label>
                                 </div>
                             </div>
+                            </div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_job_title" class="col-sm-3 control-label">Job Title</label>
+                            <label for="applicant_employment_job_title" class="col-sm-3 control-label">Job Title*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_employment_job_title" name="applicant_employment_job_title" placeholder="Job Title" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_status" class="col-sm-3 control-label">Employment Status</label>
+                            <label for="applicant_employment_status" class="col-sm-3 control-label">Employment Status*</label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_employment_status" name="applicant_employment_status" required>
                                     <option selected="" value="Current">Employment Status - Current</option>
@@ -767,7 +797,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_employer_name" class="col-sm-3 control-label">Name of Employer</label>
+                            <label for="applicant_employment_employer_name" class="col-sm-3 control-label">Name of Employer*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_employment_employer_name" name="applicant_employment_employer_name" placeholder="Name of Employer" class="form-control" required>
                             </div>
@@ -828,13 +858,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_city" class="col-sm-3 control-label">City / Town</label>
+                            <label for="applicant_employment_city" class="col-sm-3 control-label">City / Town*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_employment_city" name="applicant_employment_city" placeholder="City / Town" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_province" class="col-sm-3 control-label">Province </label>
+                            <label for="applicant_employment_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="applicant_employment_province" name="applicant_employment_province" required>					
                                     <option selected="" value="">Province</option>
@@ -855,28 +885,32 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="applicant_employment_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="applicant_employment_postal_code" name="applicant_employment_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="applicant_employment_time_at_job_year" class="col-sm-3 col-xs-12 control-label">Time At Job </label>
-                            <div class="col-sm-4 col-xs-6">
+                            <label for="applicant_employment_time_at_job_year" class="col-sm-3 col-xs-12 control-label">Time At Job* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="applicant_employment_time_at_job_year" name="applicant_employment_time_at_job_year" required>					
-                                    <option selected="" value="">Year(s)</option>
+                                    <option selected="" value="">Year(s)*</option>
                                     @for ($i = 1; $i < 15; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-sm-4 col-xs-6">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="applicant_employment_time_at_job_month" name="applicant_employment_time_at_job_month">					
                                     <option selected="" value="">Month(s)</option>
                                     @for ($i = 1; $i < 12; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
+                            </div>
+                            </div>
                             </div>
                         </div>
                         
@@ -888,29 +922,207 @@
             <div class="row setup-content" id="step-7">
                 <div class="col-xs-12">
                     <div class="">
+                        <h3>Applicant - Previous Employment Information</h3>
+                        <div class="form-group">
+                            <label for="applicant_previous_self_employed" class="col-sm-3 control-label">Self-Employed*</label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="funkyradio">
+                                <div class="funkyradio-success col-sm-6 col-xs-6">
+                                    <input type="radio" name="applicant_previous_self_employed" value="Yes" id="applicant_previous_self_employed0" required />
+                                    <label for="applicant_previous_self_employed0">Yes</label>
+                                </div>
+                                <div class="funkyradio-danger col-sm-6 col-xs-6">
+                                    <input type="radio" name="applicant_previous_self_employed" value="No" id="applicant_previous_self_employed1" />
+                                    <label for="applicant_previous_self_employed1">No</label>
+                                </div>
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_job_title" class="col-sm-3 control-label">Job Title*</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_job_title" name="applicant_previous_employment_job_title" placeholder="Job Title" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_status" class="col-sm-3 control-label">Employment Status*</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="applicant_previous_employment_status" name="applicant_previous_employment_status" required>
+                                    <option selected="" value="Current">Employment Status - Current</option>
+                                    <option value="Previous">Previous</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_occupation_type" class="col-sm-3 control-label">Occupation Type</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="applicant_previous_employment_occupation_type" name="applicant_previous_employment_occupation_type">
+                                    <option selected="" value="">Occupation Type</option>
+                                    <option value="Other">Other</option>
+                                    <option value="Management">Management</option>
+                                    <option value="Clerical">Clerical</option>
+                                    <option value="Labour/Tradesperson">Labour/Tradesperson</option>
+                                    <option value="Retired">Retired</option>
+                                    <option value="Professional">Professional</option>
+                                    <option value="Self-employed">Self-employed</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_employer_name" class="col-sm-3 control-label">Name of Employer*</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_employer_name" name="applicant_previous_employment_employer_name" placeholder="Name of Employer" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_work_phone" class="col-sm-3 control-label">Work Phone</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_work_phone" name="applicant_previous_employment_work_phone" placeholder="Work Phone" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_income_type" class="col-sm-3 control-label">Income Type</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="applicant_previous_employment_income_type" name="applicant_previous_employment_income_type">
+                                    <option selected="" value="">Income Type</option>
+                                    <option value="Salary">Salary</option>
+                                    <option value="Hourly">Hourly</option>
+                                    <option value="Hourly + Commissions">Hourly + Commissions</option>
+                                    <option value="Commissions">Commissions</option>
+                                    <option value="Self-Employed">Self-Employed</option>
+                                    <option value="Rental Income">Rental Income</option>
+                                    <option value="Other Employment Income">Other Employment Income</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_annual_income" class="col-sm-3 control-label">Annual Income</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_annual_income" name="applicant_previous_employment_annual_income" placeholder="Annual Income" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_industry_sector" class="col-sm-3 control-label">Industry Sector</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="applican_employmentt_industry_sector" name="applicant_previous_employment_industry_sector">
+                                    <option selected="" value="">Industry Sector</option>
+                                    <option value="Banking/Finance">Banking/Finance</option>
+                                    <option value="Construction">Construction</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Farming/Natural Resources">Farming/Natural Resources</option>
+                                    <option value="Government">Government</option>
+                                    <option value="Health">Health</option>
+                                    <option value="High-Tech">High-Tech</option>
+                                    <option value="Leisure/Entertainment">Leisure/Entertainment</option>
+                                    <option value="Manufacturing">Manufacturing</option>
+                                    <option value="Other">Other</option>
+                                    <option value="Retail Sales">Retail Sales</option>
+                                    <option value="Services">Services</option>
+                                    <option value="Transportation">Transportation</option>
+                                    <option value="Varies">Varies</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_address" class="col-sm-3 control-label">Address</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_address" name="applicant_previous_employment_address" placeholder="Address" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_city" class="col-sm-3 control-label">City / Town*</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_city" name="applicant_previous_employment_city" placeholder="City / Town" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_province" class="col-sm-3 control-label">Province* </label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="applicant_previous_employment_province" name="applicant_previous_employment_province" required>					
+                                    <option selected="" value="">Province</option>
+                                    <option value="Alberta">Alberta</option>
+                                    <option value="British Columbia">British Columbia</option>
+                                    <option value="Manitoba">Manitoba</option>
+                                    <option value="New Brunswick">New Brunswick</option>
+                                    <option value="Newfoundland &amp; Labrador">Newfoundland &amp; Labrador</option>
+                                    <option value="Northwest Territories">Northwest Territories</option>
+                                    <option value="Nova Scotia">Nova Scotia</option>
+                                    <option value="Nunavut">Nunavut</option>
+                                    <option value="Ontario">Ontario</option>
+                                    <option value="Prince Edward Island">Prince Edward Island</option>
+                                    <option value="Quebec">Quebec</option>
+                                    <option value="Saskatchewan">Saskatchewan</option>
+                                    <option value="Yukon">Yukon</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_postal_code" class="col-sm-3 control-label">Postal Code* </label>
+                            <div class="col-sm-9">
+                                <input type="text" id="applicant_previous_employment_postal_code" name="applicant_previous_employment_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="applicant_previous_employment_time_at_job_year" class="col-sm-3 col-xs-12 control-label">Time At Job* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
+                                <select class="form-control" id="applicant_previous_employment_time_at_job_year" name="applicant_previous_employment_time_at_job_year" required>					
+                                    <option selected="" value="">Year(s)*</option>
+                                    @for ($i = 1; $i < 15; $i++)
+                                    <option value="{{$i}}">{{$i}}</option>                                        
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-xs-6">
+                                <select class="form-control" id="applicant_previous_employment_time_at_job_month" name="applicant_previous_employment_time_at_job_month">					
+                                    <option selected="" value="">Month(s)</option>
+                                    @for ($i = 1; $i < 12; $i++)
+                                    <option value="{{$i}}">{{$i}}</option>                                        
+                                    @endfor
+                                </select>
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
+                        <button class="btn btn-default prevBtn btn-lg pull-left" type="button" >Previous</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row setup-content" id="step-8">
+                <div class="col-xs-12">
+                    <div class="">
                         <h3>Employment Information</h3>
                         <h4>Co-Applicant</h4>
                         <div class="form-group">
-                            <label for="co_applicant_employment_self_employed" class="col-sm-3 control-label">Self-Employed</label>
-                            <div class="funkyradio col-md-9">
-                                <div class="funkyradio-success col-md-6 col-xs-6">
+                            <label for="co_applicant_employment_self_employed" class="col-sm-3 control-label">Self-Employed*</label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="funkyradio">
+                                <div class="funkyradio-success col-sm-6 col-xs-6">
                                     <input type="radio" name="co_applicant_employment_self_employed" value="Yes" id="co_applicant_employment_self_employed0" required />
                                     <label for="co_applicant_employment_self_employed0">Yes</label>
                                 </div>
-                                <div class="funkyradio-success col-md-6 col-xs-6">
+                                <div class="funkyradio-danger col-sm-6 col-xs-6">
                                     <input type="radio" name="co_applicant_employment_self_employed" value="No" id="co_applicant_employment_self_employed1" />
                                     <label for="co_applicant_employment_self_employed1">No</label>
                                 </div>
                             </div>
+                            </div>
+                            </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_job_title" class="col-sm-3 control-label">Job Title</label>
+                            <label for="co_applicant_employment_job_title" class="col-sm-3 control-label">Job Title*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_employment_job_title" name="co_applicant_employment_job_title" placeholder="Job Title" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_status" class="col-sm-3 control-label">Employment Status</label>
+                            <label for="co_applicant_employment_status" class="col-sm-3 control-label">Employment Status*</label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_employment_status" name="co_applicant_employment_status" required>
                                     <option selected="" value="Current">Employment Status - Current</option>
@@ -919,7 +1131,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_employer_name" class="col-sm-3 control-label">Name of Employer</label>
+                            <label for="co_applicant_employment_employer_name" class="col-sm-3 control-label">Name of Employer*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_employment_employer_name" name="co_applicant_employment_employer_name" placeholder="Name of Employer" class="form-control" required>
                             </div>
@@ -974,13 +1186,13 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_city" class="col-sm-3 control-label">City / Town</label>
+                            <label for="co_applicant_employment_city" class="col-sm-3 control-label">City / Town*</label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_employment_city" name="co_applicant_employment_city" placeholder="City / Town" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_province" class="col-sm-3 control-label">Province </label>
+                            <label for="co_applicant_employment_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
                                 <select class="form-control" id="co_applicant_employment_province" name="co_applicant_employment_province" required>					
                                     <option selected="" value="">Province</option>
@@ -1001,28 +1213,32 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="co_applicant_employment_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
                                 <input type="text" id="co_applicant_employment_postal_code" name="co_applicant_employment_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="co_applicant_employment_time_at_job_year" class="col-sm-3 col-xs-12 control-label">Time At Job </label>
-                            <div class="col-sm-4 col-xs-6">
+                            <label for="co_applicant_employment_time_at_job_year" class="col-sm-3 col-xs-12 control-label">Time At Job* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="co_applicant_employment_time_at_job_year" name="co_applicant_employment_time_at_job_year" required>					
-                                    <option selected="" value="">Year(s)</option>
+                                    <option selected="" value="">Year(s)*</option>
                                     @for ($i = 1; $i < 15; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
                             </div>
-                            <div class="col-sm-4 col-xs-6">
+                            <div class="col-sm-6 col-xs-6">
                                 <select class="form-control" id="co_applicant_employment_time_at_job_month" name="co_applicant_employment_time_at_job_month">					
                                     <option selected="" value="">Month(s)</option>
                                     @for ($i = 1; $i < 12; $i++)
                                     <option value="{{$i}}">{{$i}}</option>                                        
                                     @endfor
                                 </select>
+                            </div>
+                            </div>
                             </div>
                         </div>
                         
@@ -1031,26 +1247,179 @@
                     </div>
                 </div>
             </div>
-            <div class="row setup-content" id="step-8">
+            <div class="row setup-content" id="step-9">
                 <div class="col-xs-12">
                     <div class="">
-                        <h3>Property Information</h3>
+                        <h3>Co-Applicant - Previous Employment Information</h3>
                         <div class="form-group">
-                            <label for="property_street_number" class="col-sm-3 control-label">Street Number</label>
+                            <label for="co_applicant_previous_employment_self_employed" class="col-sm-3 control-label">Self-Employed*</label>
                             <div class="col-sm-9">
-                                <input type="number" id="property_street_number" name="property_street_number" placeholder="Street Number" class="form-control" autofocus required>
+                            <div class="row">
+                            <div class="funkyradio">
+                                <div class="funkyradio-success col-sm-6 col-xs-6">
+                                    <input type="radio" name="co_applicant_previous_employment_self_employed" value="Yes" id="co_applicant_previous_employment_self_employed0" required />
+                                    <label for="co_applicant_previous_employment_self_employed0">Yes</label>
+                                </div>
+                                <div class="funkyradio-danger col-sm-6 col-xs-6">
+                                    <input type="radio" name="co_applicant_previous_employment_self_employed" value="No" id="co_applicant_previous_employment_self_employed1" />
+                                    <label for="co_applicant_previous_employment_self_employed1">No</label>
+                                </div>
+                            </div>
+                            </div>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="property_street_name" class="col-sm-3 control-label">Street Name</label>
+                            <label for="co_applicant_previous_employment_job_title" class="col-sm-3 control-label">Job Title*</label>
                             <div class="col-sm-9">
-                                <input type="text" id="property_street_name" name="property_street_name" placeholder="Street Name" class="form-control" required>
+                                <input type="text" id="co_applicant_previous_employment_job_title" name="co_applicant_previous_employment_job_title" placeholder="Job Title" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_status" class="col-sm-3 control-label">Employment Status*</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="co_applicant_previous_employment_status" name="co_applicant_previous_employment_status" required>
+                                    <option selected="" value="Current">Employment Status - Current</option>
+                                    <option value="Previous">Previous</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_employer_name" class="col-sm-3 control-label">Name of Employer*</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="co_applicant_previous_employment_employer_name" name="co_applicant_previous_employment_employer_name" placeholder="Name of Employer" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_job_title" class="col-sm-3 control-label">Income Type</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="co_applicant_previous_employment_income_type" name="co_applicant_previous_employment_income_type">
+                                    <option selected="" value="">Income Type</option>
+                                    <option value="Salary">Salary</option>
+                                    <option value="Hourly">Hourly</option>
+                                    <option value="Hourly + Commissions">Hourly + Commissions</option>
+                                    <option value="Commissions">Commissions</option>
+                                    <option value="Self-Employed">Self-Employed</option>
+                                    <option value="Rental Income">Rental Income</option>
+                                    <option value="Other Employment Income">Other Employment Income</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_annual_income" class="col-sm-3 control-label">Annual Income</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="co_applicant_previous_employment_annual_income" name="co_applicant_previous_employment_annual_income" placeholder="Annual Income" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_industry_sector" class="col-sm-3 control-label">Industry Sector</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="co_applicant_previous_employment_industry_sector" name="co_applicant_previous_employment_industry_sector">
+                                    <option selected="" value="">Industry Sector</option>
+                                    <option value="Banking/Finance">Banking/Finance</option>
+                                    <option value="Construction">Construction</option>
+                                    <option value="Education">Education</option>
+                                    <option value="Farming/Natural Resources">Farming/Natural Resources</option>
+                                    <option value="Government">Government</option>
+                                    <option value="Health">Health</option>
+                                    <option value="High-Tech">High-Tech</option>
+                                    <option value="Leisure/Entertainment">Leisure/Entertainment</option>
+                                    <option value="Manufacturing">Manufacturing</option>
+                                    <option value="Other">Other</option>
+                                    <option value="Retail Sales">Retail Sales</option>
+                                    <option value="Services">Services</option>
+                                    <option value="Transportation">Transportation</option>
+                                    <option value="Varies">Varies</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_address" class="col-sm-3 control-label">Address</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="co_applicant_previous_employment_address" name="co_applicant_previous_employment_address" placeholder="Address" class="form-control">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_city" class="col-sm-3 control-label">City / Town*</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="co_applicant_previous_employment_city" name="co_applicant_previous_employment_city" placeholder="City / Town" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_province" class="col-sm-3 control-label">Province* </label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="co_applicant_previous_employment_province" name="co_applicant_previous_employment_province" required>					
+                                    <option selected="" value="">Province</option>
+                                    <option value="Alberta">Alberta</option>
+                                    <option value="British Columbia">British Columbia</option>
+                                    <option value="Manitoba">Manitoba</option>
+                                    <option value="New Brunswick">New Brunswick</option>
+                                    <option value="Newfoundland &amp; Labrador">Newfoundland &amp; Labrador</option>
+                                    <option value="Northwest Territories">Northwest Territories</option>
+                                    <option value="Nova Scotia">Nova Scotia</option>
+                                    <option value="Nunavut">Nunavut</option>
+                                    <option value="Ontario">Ontario</option>
+                                    <option value="Prince Edward Island">Prince Edward Island</option>
+                                    <option value="Quebec">Quebec</option>
+                                    <option value="Saskatchewan">Saskatchewan</option>
+                                    <option value="Yukon">Yukon</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_postal_code" class="col-sm-3 control-label">Postal Code* </label>
+                            <div class="col-sm-9">
+                                <input type="text" id="co_applicant_previous_employment_postal_code" name="co_applicant_previous_employment_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="co_applicant_previous_employment_time_at_job_year" class="col-sm-3 col-xs-12 control-label">Time At Job* </label>
+                            <div class="col-sm-9">
+                            <div class="row">
+                            <div class="col-sm-6 col-xs-6">
+                                <select class="form-control" id="co_applicant_previous_employment_time_at_job_year" name="co_applicant_previous_employment_time_at_job_year" required>					
+                                    <option selected="" value="">Year(s)*</option>
+                                    @for ($i = 1; $i < 15; $i++)
+                                    <option value="{{$i}}">{{$i}}</option>                                        
+                                    @endfor
+                                </select>
+                            </div>
+                            <div class="col-sm-6 col-xs-6">
+                                <select class="form-control" id="co_applicant_previous_employment_time_at_job_month" name="co_applicant_previous_employment_time_at_job_month">					
+                                    <option selected="" value="">Month(s)</option>
+                                    @for ($i = 1; $i < 12; $i++)
+                                    <option value="{{$i}}">{{$i}}</option>                                        
+                                    @endfor
+                                </select>
+                            </div>
+                            </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
+                        <button class="btn btn-default prevBtn btn-lg pull-left" type="button" >Previous</button>
+                    </div>
+                </div>
+            </div>
+            <div class="row setup-content" id="step-10">
+                <div class="col-xs-12">
+                    <div class="property-information">
+                        <h3>Property Information</h3>
+                        <div class="form-group">
+                            <label for="property_street_number" class="col-sm-3 control-label">Street Number*</label>
+                            <div class="col-sm-9">
+                                <input type="number" id="property_street_number" name="Property[property_street_number][]" placeholder="Street Number" class="form-control" autofocus required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="property_street_name" class="col-sm-3 control-label">Street Name*</label>
+                            <div class="col-sm-9">
+                                <input type="text" id="property_street_name" name="Property[property_street_name][]" placeholder="Street Name" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="property_street_type" class="col-sm-3 control-label">Street Type </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="property_street_type" name="property_street_type">
+                                <select class="form-control" id="property_street_type" name="Property[property_street_type][]">
                                     <option value="" selected="">Street Type</option>
                                     <option value="Ave">Ave</option>
                                     <option value="Blvd">Blvd</option>
@@ -1070,7 +1439,7 @@
                         <div class="form-group">
                             <label for="property_street_type" class="col-sm-3 control-label">Street Direction </label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="property_street_direction" id="property_street_direction">
+                                <select class="form-control" name="Property[property_street_direction][]" id="property_street_direction">
                                     <option value="" selected="">Street Direction</option>
                                     <option value="North">North</option>
                                     <option value="South">South</option>
@@ -1086,19 +1455,19 @@
                         <div class="form-group">
                             <label for="property_unit_number" class="col-sm-3 control-label">Unit Number</label>
                             <div class="col-sm-9">
-                                <input type="text" id="property_unit_number" name="property_unit_number" placeholder="Unit Number" class="form-control">
+                                <input type="text" id="property_unit_number" name="Property[property_unit_number][]" placeholder="Unit Number" class="form-control">
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="property_city" class="col-sm-3 control-label">City </label>
+                            <label for="property_city" class="col-sm-3 control-label">City / Town* </label>
                             <div class="col-sm-9">
-                                <input type="text" id="property_city" name= "property_city" placeholder="City / Town" class="form-control" required>
+                                <input type="text" id="property_city" name= "Property[property_city][]" placeholder="City / Town" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="property_province" class="col-sm-3 control-label">Province </label>
+                            <label for="property_province" class="col-sm-3 control-label">Province* </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="property_province" name="property_province" required>					
+                                <select class="form-control" id="property_province" name="Property[property_province][]" required>					
                                     <option value="">Province</option>
                                     <option value="1">Alberta</option>
                                     <option value="2">British Columbia</option>
@@ -1117,15 +1486,15 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="property_postal_code" class="col-sm-3 control-label">Postal Code </label>
+                            <label for="property_postal_code" class="col-sm-3 control-label">Postal Code* </label>
                             <div class="col-sm-9">
-                                <input type="text" id="property_postal_code" name="property_postal_code" placeholder="Postal Code" class="form-control" maxlength="7" required>
+                                <input type="text" id="property_postal_code" name="Property[property_postal_code][]" placeholder="Postal Code" class="form-control" maxlength="7" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="property_construction_type" class="col-sm-3 control-label">Construction Type </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="property_construction_type" name="property_construction_type">
+                                <select class="form-control" id="property_construction_type" name="Property[property_construction_type][]">
                                     <option value="" selected="">Construction Type</option>
                                     <option value="Existing">Existing</option>
                                     <option value="Construction">Construction</option>
@@ -1136,13 +1505,13 @@
                         <div class="form-group">
                             <label for="property_structure_age" class="col-sm-3 control-label">Structure Age </label>
                             <div class="col-sm-9">
-                                <input type="text" id="property_structure_age" name="property_structure_age" placeholder="Structure Age" class="form-control">
+                                <input type="text" id="property_structure_age" name="Property[property_structure_age][]" placeholder="Structure Age" class="form-control">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="property_occupancy_type" class="col-sm-3 control-label">Occupancy Type </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="property_occupancy_type" name="property_occupancy_type">
+                                <select class="form-control" id="property_occupancy_type" name="Property[property_occupancy_type][]">
                                     <option value="">Occupancy Type</option>
                                     <option value="Owner-Occupied">Owner-Occupied</option>
                                     <option value="Owner-Occupied &amp; Rental">Owner-Occupied &amp; Rental</option>
@@ -1154,7 +1523,7 @@
                         <div class="form-group">
                             <label for="property_tenure_type" class="col-sm-3 control-label">Tenure Type </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="property_tenure_type" name="property_tenure_type">
+                                <select class="form-control" id="property_tenure_type" name="Property[property_tenure_type][]">
                                     <option value=""> Tenure Type</option>		
                                     <option value="Freehold">Freehold</option>
                                     <option value="Leasehold">Leasehold</option>
@@ -1167,7 +1536,7 @@
                         <div class="form-group">
                             <label for="property_heat_type" class="col-sm-3 control-label">Heat Type </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="property_heat_type" name="property_heat_type">
+                                <select class="form-control" id="property_heat_type" name="Property[property_heat_type][]">
                                     <option value="">Heat Type</option>
                                     <option value="Electric Baseboard">Electric Baseboard</option>
                                     <option value="Forced Air Gas/Oil/Electric">Forced Air Gas/Oil/Electric</option>
@@ -1177,50 +1546,57 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="property_estimated_value" class="col-sm-3 control-label">Estimated Value</label>
+                            <label for="property_estimated_value" class="col-sm-3 control-label">Estimated Value*</label>
                             <div class="col-sm-9">
-                                <input type="text" id="property_estimated_value" name="property_estimated_value" placeholder="Estimated Value" class="form-control" onkeyup="var val=formatValue(this.value); this.value=formatValue(val);" required>
+                                <input type="text" id="property_estimated_value" name="Property[property_estimated_value][]" placeholder="Estimated Value" class="form-control" onkeyup="var val=formatValue(this.value); this.value=formatValue(val);" required>
                             </div>
                         </div>
-                        <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
-                        <button class="btn btn-default prevBtn btn-lg pull-left" type="button" >Previous</button>
+                        <button class="btn btn-sm btn-danger remove" type="button">Remove</button>
+                        <button class="btn btn-success add_more_property" type="button" >Add More Property Information</button>
+
                     </div>
+                    <div class="property-information-clone"></div>
+                    <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
+                    <button class="btn btn-default prevBtn btn-lg pull-left" type="button" >Previous</button>
                 </div>
             </div>
-            <div class="row setup-content" id="step-9">
+            <div class="row setup-content" id="step-11">
                 <div class="col-xs-12">
-                    <div class="">
+                    <div class="mortgage-information">
                         <h3>Mortgage Information</h3>
                         <div class="form-group">
-                            <label for="mortgage_closing_date" class="col-sm-3 control-label">Closing Date</label>
+                            <label for="mortgage_closing_date" class="col-sm-3 control-label">Closing Date*</label>
                             <div class="col-sm-9">
-                                <input type="date" id="mortgage_closing_date" name="mortgage_closing_date" placeholder="Closing Date" class="form-control" required>
+                                <input type="date" id="mortgage_closing_date" name="Mortgage[mortgage_closing_date][]" placeholder="Closing Date" class="form-control" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="mortgage_amortization_year" class="col-sm-3 control-label">Amortization</label>
-                            <div class="col-sm-4 col-xs-6">
-                                <select class="form-control" id="mortgage_amortization_year" name="mortgage_amortization_year" required>					
-                                    <option selected="" value="">Year(s)</option>
-                                    @for ($i = 1; $i < 15; $i++)
-                                    <option value="{{$i}}">{{$i}}</option>                                        
-                                    @endfor
-                                </select>
-                            </div>
-                            <div class="col-sm-4 col-xs-6">
-                                <select class="form-control" id="mortgage_amortization_month" name="mortgage_amortization_month">					
-                                    <option selected="" value="">Month(s)</option>
-                                    @for ($i = 1; $i < 12; $i++)
-                                    <option value="{{$i}}">{{$i}}</option>                                        
-                                    @endfor
-                                </select>
+                            <label for="mortgage_amortization_year" class="col-sm-3 control-label">Amortization*</label>
+                            <div class="col-md-9">
+                                <div class="row">
+                                    <div class="col-sm-6 col-xs-6">
+                                        <select class="form-control" id="mortgage_amortization_year" name="Mortgage[mortgage_amortization_year][]" required>					
+                                            <option selected="" value="">Year(s)*</option>
+                                            @for ($i = 1; $i < 15; $i++)
+                                            <option value="{{$i}}">{{$i}}</option>                                        
+                                            @endfor
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-6 col-xs-6">
+                                        <select class="form-control" id="mortgage_amortization_month" name="Mortgage[mortgage_amortization_month][]">					
+                                            <option selected="" value="">Month(s)</option>
+                                            @for ($i = 1; $i < 12; $i++)
+                                            <option value="{{$i}}">{{$i}}</option>                                        
+                                            @endfor
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="mortgage_payment_frequency" class="col-sm-3 control-label">Payment Frequency </label>
                             <div class="col-sm-9">
-                                <select class="form-control" id="mortgage_payment_frequency" name="mortgage_payment_frequency">
+                                <select class="form-control" id="mortgage_payment_frequency" name="Mortgage[mortgage_payment_frequency][]">
                                     <option value="" selected="">Payment Frequency</option>
                                     <option value="Monthly">Monthly</option>
                                     <option value="Semi Monthly">Semi Monthly</option>
@@ -1235,7 +1611,7 @@
                         <div class="form-group">
                             <label for="mortgage_term" class="col-sm-3 control-label">Term </label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="mortgage_term" id="mortgage_term">
+                                <select class="form-control" name="mortgage_term" id="Mortgage[mortgage_term][]">
                                     <option value="0" selected="">Term</option>
                                      <option value="1">1</option>
                                      <option value="2">2</option>
@@ -1248,15 +1624,15 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="mortgage_amount" class="col-sm-3 control-label">Mortgage Amount </label>
+                            <label for="mortgage_amount" class="col-sm-3 control-label">Mortgage Amount* </label>
                             <div class="col-sm-9">
-                                <input type="text" id="mortgage_amount" name= "mortgage_amount" placeholder="Mortgage Amount" class="form-control" onkeyup="var val=formatValue(this.value); this.value=formatValue(val);" required>
+                                <input type="text" id="mortgage_amount" name="Mortgage[mortgage_amount][]" placeholder="Mortgage Amount" class="form-control" onkeyup="var val=formatValue(this.value); this.value=formatValue(val);" required>
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="mortgage_product_type" class="col-sm-3 control-label">Product Type </label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="mortgage_product_type" id="mortgage_product_type">
+                                <select class="form-control" name="Mortgage[mortgage_product_type][]" id="mortgage_product_type">
 				                    <option value="" selected="">Product Type</option>
 				                    <option value="Fixed">Fixed</option>
                                     <option value="Adjustable">Adjustable</option>	
@@ -1268,28 +1644,33 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="mortgage_down_payment" class="col-sm-3 control-label">Down Payment </label>
+                            <label for="mortgage_down_payment" class="col-sm-3 control-label">Down Payment* </label>
                             <div class="col-sm-9">
-                                <input type="text" id="mortgage_down_payment" name="mortgage_down_payment" placeholder="Down Payment" class="form-control" onkeyup="var val=formatValue(this.value); this.value=formatValue(val);" required>
+                                <input type="text" id="mortgage_down_payment" name="Mortgage[mortgage_down_payment][]" placeholder="Down Payment" class="form-control" onkeyup="var val=formatValue(this.value); this.value=formatValue(val);" required>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label for="mortgage_first_time_buyer" class="col-sm-3 control-label">First-Time Buyer</label>
-                            <div class="funkyradio col-md-9">
-                                <div class="funkyradio-success col-md-6 col-xs-6">
+                            <label for="mortgage_first_time_buyer" class="col-sm-3 control-label">First-Time Buyer*</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" id="mortgage_first_time_buyer" name="Mortgage[mortgage_first_time_buyer][]">
+                                    <option value="" selected="">First-Time Buyer*</option>
+                                    <option value="Yes">Yes</option>
+                                    <option value="No">No</option>
+                                </select>
+                                {{-- <div class="funkyradio-success col-md-6 col-xs-6">
                                     <input type="radio" name="mortgage_first_time_buyer" value="Yes" id="mortgage_first_time_buyer0" required />
                                     <label for="mortgage_first_time_buyer0">Yes</label>
                                 </div>
                                 <div class="funkyradio-success col-md-6 col-xs-6">
                                     <input type="radio" name="mortgage_first_time_buyer" value="No" id="mortgage_first_time_buyer1" />
                                     <label for="mortgage_first_time_buyer1">No</label>
-                                </div>
+                                </div> --}}
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="mortgage_purpose" class="col-sm-3 control-label">Purpose </label>
                             <div class="col-sm-9">
-                                <select class="form-control" name="mortgage_purpose" id="mortgage_purpose">
+                                <select class="form-control" name="Mortgage[mortgage_purpose][]" id="mortgage_purpose">
                                     <option value="">Purpose</option>
                                      <option value="Purchase">Purchase</option>
                                      <option value="Purchase + Improvements">Purchase + Improvements</option>
@@ -1302,13 +1683,17 @@
                                      </select>
                             </div>
                         </div>
+                        <button class="btn btn-sm btn-danger remove" type="button">Remove</button>
+                        <button class="btn btn-success add_more_mortgage" type="button" >Add More Mortgage Information</button>
+                    </div>    
+                    <div class="mortgage-information-clone"></div>
 
-                        <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
-                        <button class="btn btn-default prevBtn btn-lg pull-left" type="button" >Previous</button>
-                    </div>
+                    <button class="btn btn-primary nextBtn btn-lg pull-right" type="button" >Next</button>
+                    
+                    <button class="btn btn-default prevBtn btn-lg pull-left" type="button" >Previous</button>
                 </div>
             </div>            
-            <div class="row setup-content" id="step-10">
+            <div class="row setup-content" id="step-12">
                 <div class="col-xs-12">
                     <div class="">
                         <h3>Assets</h3>
@@ -1354,7 +1739,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row setup-content" id="step-11">
+            <div class="row setup-content" id="step-13">
                 <div class="col-xs-12">
                     <div class="">
                         <h3>Liabilities</h3>
@@ -1388,13 +1773,13 @@
                     </div>
                 </div>
             </div>
-            <div class="row setup-content" id="step-12">
+            <div class="row setup-content" id="step-14">
                 <div class="col-xs-12">
                     <div class="message">
                         <h3>Consent and Privacy Agreement</h3>
 
                         <div class="form-group">
-                            <p>
+                            <div class="read-more">
                                 <p style="font-weight:bold;text-decoration: underline;">Collection and Use of Personal Information</p>
                                 <p>I/We understand that Mortgage Alliance ('MAC') collects personal information in accordance with and for purposes detailed in its privacy policy available at <a href="https://mortgagealliance.com/privacy-policy" target="new">https://mortgagealliance.com/privacy-policy</a> ('Privacy Policy'), including to provide the services requested, better understand my/our financial needs and determine how Mortgage Alliance may be of service to me/us. The type of information collected and related purposes include:</p>
                                 <div style="padding: 0px 15px 15px 15px;">
@@ -1423,7 +1808,8 @@
                                 <p style="font-weight:bold;text-decoration: underline;">Ongoing Commitment:</p>
                                 <p>I/We acknowledge the Mortgage Alliance Privacy Policy is available for review at https://mortgagealliance.com/privacy-policy, and understand that the collection, use and disclosure of my/our personal information by Mortgage Alliance will be done in accordance with such Privacy Policy.</p>
                                 <p>I/We agree that a photocopy or electronic copy of this Consent and Privacy Agreement has the same value as the original one.</p>   
-                            </p>
+                            </div>
+                            <div id="read-more">read more</div>
                         </div>
 
                         <div class="form-group">

@@ -14,10 +14,10 @@
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+Route::get('/full-application/{token}','HomeController@FullApplication');
 Route::get('/full-application','HomeController@FullApplication');
 Route::get('/','HomeController@EazyApplication');
 Route::get('/{token}','HomeController@EazyApplication');
-//Route::get('/full-application/{token}','HomeController@FullApplication');
 Route::get('/eazy-application-form','HomeController@ApplyEazyForm');
 Route::post('/eazy-application-form','HomeController@ApplyEazyForm');
 

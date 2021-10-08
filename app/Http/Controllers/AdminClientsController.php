@@ -8,6 +8,7 @@
 	use app\ApplicationType;
 	use Twilio;
 	use Mail;
+	use App\Helpers\Helper;
 
 	class AdminClientsController extends \crocodicstudio\crudbooster\controllers\CBController {
 
@@ -156,11 +157,11 @@
 	        |
 	        */
 	        $this->index_statistic = array();
-		if( CRUDBooster::myPrivilegeId()==3 ) { //If realtor logged in can see thiere only Clients
+		/*if( CRUDBooster::myPrivilegeId()==3 ) { //If realtor logged in can see thiere only Clients
             $this->index_statistic[] = ['label'=>'View Detail','color'=>'success','link'=>'#'];
             $this->index_statistic[] = ['label'=>'View Documents','color'=>'success','link'=>'#'];
             $this->index_statistic[] = ['label'=>'Total Data','color'=>'success','link'=>'#'];
-		}
+		}*/
 
 
 	        /*
@@ -348,7 +349,7 @@
 			$data['client'] = DB::table('cms_users')->where('id',$id)->first();
 			$data['applications'] = DB::table('application_type')->where('application_status',1)->orderBy('application_name','ASC')->get();
 			$data['apps'] = DB::table('application_type')
-							->select('application_type.*', 'application_applied.id as applied_id', 'application_applied.updated_at')
+							->select('application_type.*', 'application_applied.id as applied_id', 'application_applied.updated_at', 'application_applied.application_type', 'application_applied.application_status')
 							->join('allow_applications', 'application_type.id', '=', 'allow_applications.application_type_id')
 							->leftJoin('application_applied', 'application_type.id','=','application_applied.application_type_id')
 							->where('allow_applications.user_id',$id)
@@ -359,14 +360,76 @@
 	    
 		public function postApplications( ) 
 		{
-			DB::table('allow_applications')->insert(
-				[
-					'user_id' 				=> $_POST['user_id'], 
-					'application_type_id' 	=> $_POST['application_type_id'],
-					'token' 				=> md5(date('YMDHISA')), 
-					'created_at' 			=> date('Y-m-d H:i:s') 
-				]
-			);
+			if( isset($_POST['user_id']) && !empty($_POST['user_id']) && isset($_POST['application_type_id']) && !empty($_POST['application_type_id']) ) 
+			{ 
+			    $DB = DB::table('allow_applications')->insert(
+    				[
+    					'user_id' 				=> $_POST['user_id'], 
+    					'application_type_id' 	=> $_POST['application_type_id'],
+    					'token' 				=> md5(date('YMDHisA')), 
+    					'created_at' 			=> date('Y-m-d H:i:s') 
+    				]
+    			);
+			
+    			$user = DB::table('allow_applications')
+                        ->select('cms_users.id', 'cms_users.name', 'cms_users.email', 'cms_users.mobile', 'allow_applications.application_type_id', 'allow_applications.token')
+                        ->join('cms_users', 'cms_users.id', '=','allow_applications.user_id')
+                        ->where('allow_applications.user_id',$_POST['user_id'])
+                        ->where('allow_applications.application_type_id',$_POST['application_type_id'])
+                        ->first();
+                if($user) 
+                {
+                    //$model = DB::table('cms_users')->Where('id', $id)->first();
+        			$template = DB::table('cms_email_templates')->Where('slug', 'invite-client')->first();
+        
+        			$content = str_replace('[NAME]',$user->name,$template->content);
+        			$content = str_replace('[LINK]',url('/full-application/'.$user->token),$content);
+        			$data = [
+        				'email' 	=> $user->email,
+        				'subject' 	=> $template->subject,
+        				'content' 	=> $content
+        			];
+        	  
+        			$mail = Mail::send('emails/invite-client', $data, function($message) use ($data) {
+        				$message->to($data['email'])->subject($data['subject']);
+        			});
+        
+        			$message = $template->message;
+        			Twilio::message($user->mobile, $message);
+                    
+                }
+			}
+			else if(isset($_POST['application_applied_id'])) 
+			{
+			    $affected = DB::table('application_applied')->where('id', $_POST['application_applied_id'])->update(['application_status'=>$_POST['application_status'] ]);
+			    if($affected) 
+			    {
+			        $user = DB::table('application_applied')
+                            ->select('cms_users.*')
+                            ->join('cms_users', 'cms_users.id', '=', 'application_applied.user_id')
+                            ->where('application_applied.id', $_POST['application_applied_id'])
+                            ->first();
+                    if($user) 
+                    {
+    			        $template = DB::table('cms_email_templates')->Where('slug', 'change-application-status')->first();
+            
+            			$content = str_replace('[NAME]',$user->name,$template->content);
+            			$content = str_replace('[LINK]',url('/admin/'),$content);
+            			$data = [
+            				'email' 	=> $user->email,
+            				'subject' 	=> $template->subject,
+            				'content' 	=> $content
+            			];
+            	  
+            			$mail = Mail::send('emails/invite-client', $data, function($message) use ($data) {
+            				$message->to($data['email'])->subject($data['subject']);
+            			});
+            
+            			$message = $template->message;
+            			Twilio::message($user->mobile, $message);
+                    }
+			    }
+			}
 
 			return back();
 		}

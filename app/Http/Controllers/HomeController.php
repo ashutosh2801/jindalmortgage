@@ -3,12 +3,14 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use Validator;
 use App\User;
 use DB;
 use App\Application;
 use Twilio;
-use Illuminate\Support\Facades\Hash;
+use Mail;
+use PDF;
 
 class HomeController extends Controller
 {
@@ -17,8 +19,18 @@ class HomeController extends Controller
         //echo $token; exit;
         //Twilio::message('+918707788610', 'Hi, this is test');
 
-        if(!empty($token)) {
+        /*if(!empty($token)) {
             $user = DB::table('allow_applications')->where('token',$token)->first();
+            if($user)
+            return view('eazy-application',compact(['user']) );
+        }*/
+        if(!empty($token)) {
+            $user = DB::table('allow_applications')
+            ->select('cms_users.*', 'allow_applications.token as user_token')
+            ->join('cms_users', 'cms_users.id', '=','allow_applications.user_id')
+            ->where('allow_applications.token',$token)
+            ->first();
+
             if($user)
             return view('eazy-application',compact(['user']) );
         }
@@ -28,11 +40,9 @@ class HomeController extends Controller
 
     public function FullApplication($token='') 
     {
-        //return view('full-application');
-
         if(!empty($token)) {
             $user = DB::table('allow_applications')
-            ->select('cms_users.*')
+            ->select('cms_users.*', 'allow_applications.token as user_token')
             ->join('cms_users', 'cms_users.id', '=','allow_applications.user_id')
             ->where('allow_applications.token',$token)
             ->first();
@@ -46,17 +56,22 @@ class HomeController extends Controller
 
     public function ApplyEazyForm(Request $request) 
     {
-        $user = User::where('token',$request->token)->first();
+        //$user = User::where('token',$request->token)->first();
+        $user = DB::table('allow_applications')
+            ->select('cms_users.id', 'cms_users.name', 'cms_users.email', 'cms_users.mobile', 'allow_applications.application_type_id', 'allow_applications.token')
+            ->join('cms_users', 'cms_users.id', '=','allow_applications.user_id')
+            ->where('allow_applications.token',$request->token)
+            ->first();
+            
         if($user) {
             $validator = \Validator::make($request->all(), [
-                'money_required'         => 'required',
+                'money_required'=> 'required',
                 'first_name'    => 'required',
                 'last_name'     => 'required',
                 'email'         => 'required|email',
                 'birth_date'    => 'required',
                 'phone'         => 'required',
                 'street_number' => 'required',
-                'unit'          => 'required',
                 'street_name'   => 'required',
                 'city'          => 'required',
                 'province'      => 'required',
@@ -69,7 +84,6 @@ class HomeController extends Controller
                 'co_email'         => 'required_if:co_applicant,==,Yes',
                 'co_phone'         => 'required_if:co_applicant,==,Yes',
                 'co_street_number' => 'required_if:co_applicant,==,Yes',
-                'co_unit'          => 'required_if:co_applicant,==,Yes',
                 'co_street_name'   => 'required_if:co_applicant,==,Yes',
                 'co_city'          => 'required_if:co_applicant,==,Yes',
                 'co_province'      => 'required_if:co_applicant,==,Yes',
@@ -78,7 +92,6 @@ class HomeController extends Controller
                 'marital_status'   => 'required',
                 'contact_credit_agencies'   => 'required',
                 'property_street_number' => 'required',
-                'property_unit'          => 'required',
                 'property_street_name'   => 'required',
                 'property_city'          => 'required',
                 'property_province'      => 'required',
@@ -95,22 +108,32 @@ class HomeController extends Controller
             }
             else 
             {
-                extract($_POST);
+                $post = $_POST;
+                extract($post);
+                
+                $pdf = PDF::setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true])
+                ->loadView('report', compact(['post']));
+                $filename = date('YMDHis').'.pdf';
+                $file = '/reports/'.$filename;
+                $pdf->save( public_path().$file );
+                
                 //$user = User::where('token',$token)->first();
                 $json = json_encode($_POST);
                 $app = new Application;
-                $app->user_id       = $user->id;
-                $app->application_type_id  = $user->application_id;
-                $app->application_values   = $json;
-                $app->updated_at    = date('Y-m-d H:i:s');
-                $app->created_at    = date('Y-m-d H:i:s');
+                $app->user_id               = $user->id;
+                $app->application_type_id   = $user->application_type_id;
+                $app->application_values    = $json;
+                $app->application_type      = 'Eazy Application';
+                $app->application_form      = $file;
+                $app->updated_at            = date('Y-m-d H:i:s');
+                $app->created_at            = date('Y-m-d H:i:s');
                 $app->save();
-                //return response()->json(['status'=>'Success','message'=>$json]);
+
 
                 $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                 $password =  substr(str_shuffle($chars),0,8);
                 
-                User::where('token',$request->token)->update(['password'=>Hash::make($password)]);
+                User::where('id',$user->id)->update(['password'=>Hash::make($password)]);
 
                 $template = DB::table('cms_email_templates')->Where('slug', 'successful-message')->first();
 
@@ -124,8 +147,8 @@ class HomeController extends Controller
                     'content' 	=> $content
                 ];
 
-                $mail = Mail::send('emails/invite-client', $data, function($message) use ($data) {
-                    $message->to($data['email'])->subject($data['subject']);
+                $mail = Mail::send('emails/invite-client', $data, function($message) use ($data, $file) {
+                    $message->to($data['email'])->subject($data['subject'])->attach(public_path().$file);
                 });
 
                 $message = str_replace('[NAME]', $user->name, $template->message);
@@ -144,7 +167,11 @@ class HomeController extends Controller
 
     public function ApplyFullForm(Request $request) 
     {
-        $user = User::where('token',$request->token)->first();
+        $user = DB::table('allow_applications')
+            ->select('cms_users.id', 'cms_users.name', 'cms_users.email', 'cms_users.mobile', 'allow_applications.application_type_id', 'allow_applications.token')
+            ->join('cms_users', 'cms_users.id', '=','allow_applications.user_id')
+            ->where('allow_applications.token',$request->token)
+            ->first();
         if($user) {
             $validator = \Validator::make($request->all(), [
                 'applicant_first_name'          => 'required',
@@ -158,71 +185,90 @@ class HomeController extends Controller
                 'applicant_province'            => 'required',
                 'applicant_postal_code'         => 'required',
                 'applicant_residential_status'  => 'required',
+                
                 'applicant_time_at_residence_year'      => 'required',
 
-                'applicant_previous_street_number'          => 'required_if:applicant_residence_year,<,4',
-                'applicant_previous_street_name'            => 'required_if:applicant_residence_year,<,4',
-                'applicant_previous_city'                   => 'required_if:applicant_residence_year,<,4',
-                'applicant_previous_province'               => 'required_if:applicant_residence_year,<,4',
-                'applicant_previous_postal_code'            => 'required_if:applicant_residence_year,<,4',
-                'applicant_previous_residential_status'     => 'required_if:applicant_residence_year,<,4',
-                'applicant_previous_time_at_residence_year' => 'required_if:applicant_residence_year,<,4',
+                'applicant_previous_street_number'              => 'required_if:applicant_residence_year,1,2,3',
+                'applicant_previous_street_name'                => 'required_if:applicant_residence_year,1,2,3',
+                'applicant_previous_city'                       => 'required_if:applicant_residence_year,1,2,3',
+                'applicant_previous_province'                   => 'required_if:applicant_residence_year,1,2,3',
+                'applicant_previous_postal_code'                => 'required_if:applicant_residence_year,1,2,3',
+                'applicant_previous_residential_status'         => 'required_if:applicant_residence_year,1,2,3',
+                'applicant_previous_time_at_residence_year'     => 'required_if:applicant_residence_year,1,2,3',
 
                 'is_co_applicant'   => 'required',
 
-                'co_applicant_first_name'               => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_last_name'                => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_email'                    => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_phone'                    => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_birth_date'               => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_street_number'            => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_street_name'              => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_city'                     => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_province'                 => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_postal_code'              => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_time_at_residence_year'   => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_first_name'                       => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_last_name'                        => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_email'                            => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_phone'                            => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_birth_date'                       => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_street_number'                    => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_street_name'                      => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_city'                             => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_province'                         => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_postal_code'                      => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_time_at_residence_year'           => 'required_if:is_co_applicant,==,Yes',
 
-                'co_applicant_previous_street_number'          => 'required_if:co_applicant_time_at_residence_year,<,4',
-                'co_applicant_previous_street_name'            => 'required_if:co_applicant_time_at_residence_year,<,4',
-                'co_applicant_previous_city'                   => 'required_if:co_applicant_time_at_residence_year,<,4',
-                'co_applicant_previous_province'               => 'required_if:co_applicant_time_at_residence_year,<,4',
-                'co_applicant_previous_postal_code'            => 'required_if:co_applicant_time_at_residence_year,<,4',
-                'co_applicant_previous_residential_status'     => 'required_if:co_applicant_time_at_residence_year,<,4',
-                'co_applicant_previous_time_at_residence_year' => 'required_if:co_applicant_time_at_residence_year,<,4',
+                'co_applicant_previous_street_number'           => 'required_if:co_applicant_time_at_residence_year,1,2,3',
+                'co_applicant_previous_street_name'             => 'required_if:co_applicant_time_at_residence_year,1,2,3',
+                'co_applicant_previous_city'                    => 'required_if:co_applicant_time_at_residence_year,1,2,3',
+                'co_applicant_previous_province'                => 'required_if:co_applicant_time_at_residence_year,1,2,3',
+                'co_applicant_previous_postal_code'             => 'required_if:co_applicant_time_at_residence_year,1,2,3',
+                'co_applicant_previous_residential_status'      => 'required_if:co_applicant_time_at_residence_year,1,2,3',
+                'co_applicant_previous_time_at_residence_year'  => 'required_if:co_applicant_time_at_residence_year,1,2,3',    
 
-                'applicant_self_employed'                => 'required',
-                'applicant_employment_job_title'         => 'required',
-                'applicant_employment_status'            => 'required',
-                'applicant_employment_employer_name'     => 'required',
-                'applicant_employment_city'              => 'required',
-                'applicant_employment_province'          => 'required',
-                'applicant_employment_postal_code'       => 'required',
-                'applicant_employment_time_at_job_year'  => 'required',
+                'applicant_self_employed'                       => 'required',
+                'applicant_employment_job_title'                => 'required',
+                'applicant_employment_status'                   => 'required',
+                'applicant_employment_employer_name'            => 'required',
+                'applicant_employment_city'                     => 'required',
+                'applicant_employment_province'                 => 'required',
+                'applicant_employment_postal_code'              => 'required',
+                'applicant_employment_time_at_job_year'         => 'required',
+                
+                'applicant_previous_self_employed'              => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_job_title'       => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_status'          => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_employer_name'   => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_city'            => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_province'        => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_postal_code'     => 'required_if:applicant_employment_time_at_job_year,1,2,3',
+                'applicant_previous_employment_time_at_job_year'=> 'required_if:applicant_employment_time_at_job_year,1,2,3',
 
-                'co_applicant_employment_self_employed'     => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_job_title'         => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_status'            => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_employer_name'     => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_city'              => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_province'          => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_postal_code'       => 'required_if:is_co_applicant,==,Yes',
-                'co_applicant_employment_time_at_job_year'  => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_self_employed'         => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_job_title'             => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_status'                => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_employer_name'         => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_city'                  => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_province'              => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_postal_code'           => 'required_if:is_co_applicant,==,Yes',
+                'co_applicant_employment_time_at_job_year'      => 'required_if:is_co_applicant,==,Yes',
 
-                'property_street_number'     => 'required',
-                'property_street_name'       => 'required',
-                'property_city'              => 'required',
-                'property_province'          => 'required',
-                'property_postal_code'       => 'required',
-                'property_estimated_value'   => 'required',
+                //'co_applicant_previous_self_employed'               => 'required_if:co_applicant_employment_time_at_job_year,<,4',
+                'co_applicant_previous_employment_job_title'        => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
+                'co_applicant_previous_employment_status'           => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
+                'co_applicant_previous_employment_employer_name'    => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
+                'co_applicant_previous_employment_city'             => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
+                'co_applicant_previous_employment_province'         => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
+                'co_applicant_previous_employment_postal_code'      => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
+                'co_applicant_previous_employment_time_at_job_year' => 'required_if:co_applicant_employment_time_at_job_year,1,2,3',
 
-                'mortgage_closing_date'      => 'required',
-                'mortgage_amortization_year' => 'required',
-                'mortgage_amount'            => 'required',
-                'mortgage_down_payment'      => 'required',
-                'mortgage_first_time_buyer'  => 'required',
+                'Property.property_street_number.*'     => 'required',
+                'Property.property_street_name.*'       => 'required',
+                'Property.property_city.*'              => 'required',
+                'Property.property_province.*'          => 'required',
+                'Property.property_postal_code.*'       => 'required',
+                'Property.property_estimated_value.*'   => 'required',
 
-                'privacy'                       => 'required',
-                'understand_canada_anti_spam'   => 'required',
+                'Mortgage.mortgage_closing_date.*'      => 'required',
+                'Mortgage.mortgage_amortization_year.*' => 'required',
+                'Mortgage.mortgage_amount.*'            => 'required',
+                'Mortgage.mortgage_down_payment.*'      => 'required',
+                'Mortgage.mortgage_first_time_buyer.*'  => 'required',
+
+                'privacy'                    => 'required',
+                'understand_canada_anti_spam'=> 'required',
 
             ]);
             
@@ -232,14 +278,22 @@ class HomeController extends Controller
             }
             else 
             {
-                extract($_POST);
-                //$user = User::where('token',$token)->first();
+                $post = $_POST;
+                extract($post);
+                
+                $pdf = PDF::setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true])
+                ->loadView('report', compact(['post']));
+                $filename = date('YMDHis').'.pdf';
+                $file = '/reports/'.$filename;
+                $pdf->save( public_path().$file );
+                
                 $json = json_encode($_POST);
                 $app = new Application;
                 $app->user_id               = $user->id;
-                $app->application_type_id   = $user->application_id;
+                $app->application_type_id   = $user->application_type_id;
                 $app->application_values    = $json;
                 $app->application_type      = 'Full Application';
+                $app->application_form      = $file;
                 $app->updated_at            = date('Y-m-d H:i:s');
                 $app->created_at            = date('Y-m-d H:i:s');
                 $app->save();
@@ -247,7 +301,7 @@ class HomeController extends Controller
                 $chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
                 $password =  substr(str_shuffle($chars),0,8);
                 
-                User::where('token',$request->token)->update(['password'=>Hash::make($password)]);
+                User::where('id',$user->id)->update(['password'=>Hash::make($password)]);
 
                 $template = DB::table('cms_email_templates')->Where('slug', 'successful-message')->first();
 
@@ -261,8 +315,8 @@ class HomeController extends Controller
                     'content' 	=> $content
                 ];
 
-                $mail = Mail::send('emails/invite-client', $data, function($message) use ($data) {
-                    $message->to($data['email'])->subject($data['subject']);
+                $mail = Mail::send('emails/invite-client', $data, function($message) use ($data, $file) {
+                    $message->to($data['email'])->subject($data['subject'])->attach( public_path().$file );
                 });
 
                 $message = str_replace('[NAME]', $user->name, $template->message);
